@@ -7,47 +7,32 @@ import { AccountsList } from './components/AccountsList';
 import { RecentTransactions } from './components/RecentTransactions';
 import { WhatsAppLiveModal } from './components/WhatsAppLiveModal';
 import { NewTransactionModal } from './components/NewTransactionModal';
+import { AuthModal } from './components/AuthModal';
+import { SettingsModal } from './components/SettingsModal';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Transaction, Account, Category, FinancialStats } from './types';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, ShieldCheck, Sparkles } from 'lucide-react';
 
-export function App() {
-  const [userId, setUserId] = useState<string>('');
-  const [userName, setUserName] = useState<string>('João Silva');
+function Dashboard() {
+  const { user, profile } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Modals state
+  // Modais
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState<boolean>(false);
   const [isNewTxOpen, setIsNewTxOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
 
-  // 1. Inicializa usuário (usa o perfil de teste criado ou o primeiro perfil encontrado)
-  const initUser = useCallback(async () => {
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, full_name, phone_number')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+  const activeUserId = profile?.id || user?.id || '';
 
-      if (profile) {
-        setUserId(profile.id);
-        setUserName(profile.full_name || 'João Silva');
-        return profile.id;
-      }
-    } catch (err) {
-      console.error('Erro ao inicializar perfil:', err);
-    }
-    return '';
-  }, []);
-
-  // 2. Carrega todos os dados do banco
-  const fetchData = useCallback(async (targetUserId?: string) => {
-    const uid = targetUserId || userId;
-    if (!uid) return;
+  // Carrega transações, contas e categorias do Supabase
+  const fetchData = useCallback(async () => {
+    if (!activeUserId) return;
 
     setIsRefreshing(true);
     try {
@@ -55,17 +40,17 @@ export function App() {
         supabase
           .from('transactions')
           .select('*, category:categories(name, color, icon), account:accounts(name, type)')
-          .eq('user_id', uid)
+          .eq('user_id', activeUserId)
           .order('created_at', { ascending: false }),
         supabase
           .from('accounts')
           .select('*')
-          .eq('user_id', uid)
+          .eq('user_id', activeUserId)
           .eq('is_active', true),
         supabase
           .from('categories')
           .select('*')
-          .eq('user_id', uid),
+          .eq('user_id', activeUserId),
       ]);
 
       if (txRes.data) setTransactions(txRes.data as any);
@@ -77,17 +62,17 @@ export function App() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [userId]);
+  }, [activeUserId]);
 
   useEffect(() => {
-    initUser().then((uid) => {
-      if (uid) fetchData(uid);
-    });
-  }, [initUser, fetchData]);
+    if (activeUserId) {
+      fetchData();
+    }
+  }, [activeUserId, fetchData]);
 
-  // 3. Listener Realtime do Supabase: Atualiza UI automaticamente quando nova transação surge no banco!
+  // Subscrição Realtime no Supabase
   useEffect(() => {
-    if (!userId) return;
+    if (!activeUserId) return;
 
     const channel = supabase
       .channel('schema-db-changes')
@@ -110,9 +95,9 @@ export function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchData]);
+  }, [activeUserId, fetchData]);
 
-  // 4. Calcula métricas (KPIs)
+  // KPIs
   const stats: FinancialStats = React.useMemo(() => {
     const totalBalance = accounts.reduce((acc, a) => acc + Number(a.current_balance), 0);
     let totalIncome = 0;
@@ -131,65 +116,73 @@ export function App() {
     };
   }, [accounts, transactions]);
 
-  // Excluir transação
   const handleDeleteTransaction = async (id: string) => {
     try {
       await supabase.from('transactions').delete().eq('id', id);
       fetchData();
     } catch (err) {
-      console.error('Erro ao deletar:', err);
+      console.error('Erro ao deletar transação:', err);
     }
   };
 
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'João Silva';
+
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
+    <div className="min-h-screen bg-[#090D16] dark:bg-[#090D16] light:bg-slate-50 flex flex-col font-sans transition-colors duration-200">
       {/* Header */}
       <Header
         onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
         onOpenNewTransaction={() => setIsNewTxOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
         onRefresh={() => fetchData()}
         isRefreshing={isRefreshing}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
-        {/* Welcome Banner / SaaS Greeting */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-r from-surface to-surface-elevated border border-border-subtle relative overflow-hidden">
+        {/* Welcome SaaS Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-surface border border-border-subtle relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-full bg-brand-500/5 blur-3xl pointer-events-none"></div>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold text-brand-400 uppercase tracking-wider">Painel Financeiro Consolidado</span>
+              <span className="text-xs font-semibold text-brand-400 uppercase tracking-wider">Painel Financeiro SaaS</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                WhatsApp: {profile?.phone_number ? `+${profile.phone_number}` : 'Aguardando vínculo'}
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Olá, {userName} 👋
+              Olá, {displayName} 👋
             </h1>
-            <p className="text-sm text-slate-400 mt-1 max-w-xl">
-              Suas movimentações registradas pelo WhatsApp e Web são auditadas e calculadas em tempo real com precisão matemática.
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+              Suas despesas e receitas sincronizadas em tempo real via WhatsApp e Web com o PostgreSQL do Supabase.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setIsWhatsAppOpen(true)}
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 text-[#25D366] text-xs font-bold transition-all shadow-sm group"
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 text-[#25D366] text-xs font-bold transition-all shadow-sm group"
             >
               <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span>Simular Conversa no WhatsApp</span>
+              <span>Simular no WhatsApp</span>
             </button>
           </div>
         </div>
 
-        {/* 1. KPI Cards */}
+        {/* 1. KPI Cards (Saldo, Entradas, Saídas) */}
         <KpiCards stats={stats} />
 
-        {/* 2. Visual Charts (Fluxo & Categorias) */}
+        {/* 2. Gráficos Analíticos */}
         <FinancialCharts transactions={transactions} />
 
         {/* 3. Contas & Carteiras */}
         <AccountsList accounts={accounts} />
 
-        {/* 4. Extrato & Transações Recentes */}
+        {/* 4. Extrato de Transações */}
         <RecentTransactions
           transactions={transactions}
           onDeleteTransaction={handleDeleteTransaction}
@@ -205,19 +198,40 @@ export function App() {
       <WhatsAppLiveModal
         isOpen={isWhatsAppOpen}
         onClose={() => setIsWhatsAppOpen(false)}
-        userId={userId}
+        userId={activeUserId}
         onTransactionUpdated={() => fetchData()}
       />
 
       <NewTransactionModal
         isOpen={isNewTxOpen}
         onClose={() => setIsNewTxOpen(false)}
-        userId={userId}
+        userId={activeUserId}
         accounts={accounts}
         categories={categories}
         onSuccess={() => fetchData()}
       />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }
+
+export function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Dashboard />
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
 export default App;
