@@ -1,0 +1,24 @@
+{
+  "name": "finbot-saas",
+  "version": "1.0.0",
+  "description": "SaaS de Gestão Financeira Conversacional via WhatsApp, IA e Supabase",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test:ai": "tsx src/simulate.ts",
+    "test:db": "tsx src/test_db.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@google/genai": "^2.3.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
