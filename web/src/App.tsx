@@ -128,7 +128,7 @@ function Dashboard() {
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'João Silva';
 
   return (
-    <div className="min-h-screen bg-[#090D16] dark:bg-[#090D16] light:bg-slate-50 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Header */}
       <Header
         onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
@@ -143,21 +143,21 @@ function Dashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         {/* Welcome SaaS Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-surface border border-border-subtle relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-surface border border-border-subtle relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-80 h-full bg-brand-500/5 blur-3xl pointer-events-none"></div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold text-brand-400 uppercase tracking-wider">Painel Financeiro SaaS</span>
-              <span className="text-slate-500">•</span>
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Painel Financeiro SaaS</span>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 WhatsApp: {profile?.phone_number ? `+${profile.phone_number}` : 'Aguardando vínculo'}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Olá, {displayName} 👋
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
               Suas despesas e receitas sincronizadas em tempo real via WhatsApp e Web com o PostgreSQL do Supabase.
             </p>
           </div>

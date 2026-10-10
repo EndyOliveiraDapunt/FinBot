@@ -63,11 +63,14 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-surface border border-border-subtle rounded-3xl p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-surface border border-border-subtle rounded-3xl p-6 sm:p-8 shadow-2xl relative">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-white">Novo Lançamento</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Novo Lançamento</h3>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -78,10 +81,10 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
                 type === 'expense'
-                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <ArrowDownRight className="w-4 h-4" /> Despesa
@@ -89,10 +92,10 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
                 type === 'income'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <ArrowUpRight className="w-4 h-4" /> Receita
@@ -101,7 +104,9 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
 
           {/* Amount */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Valor (R$)</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Valor (R$)
+            </label>
             <input
               type="number"
               step="0.01"
@@ -109,31 +114,35 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2.5 text-lg font-bold text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2.5 text-lg font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Descrição</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Descrição
+            </label>
             <input
               type="text"
               required
               placeholder="Ex: Almoço executivo, Uber, Freela..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 transition-all"
             />
           </div>
 
           {/* Category & Account */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Categoria</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Categoria
+              </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
               >
                 {filteredCategories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -144,11 +153,13 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Conta</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                Conta
+              </label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -161,12 +172,14 @@ export const NewTransactionModal: React.FC<NewTransactionModalProps> = ({
 
           {/* Date */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">Data</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Data
+            </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
+              className="w-full bg-surface-elevated border border-border-subtle rounded-xl px-4 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
             />
           </div>
 

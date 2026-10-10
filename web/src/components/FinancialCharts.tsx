@@ -49,8 +49,6 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
 
   // 2. Timeline de transações (últimos dias)
   const timelineMap: Record<string, { date: string; receitas: number; despesas: number }> = {};
-
-  // Ordena por data crescente
   const sorted = [...transactions].sort((a, b) => a.transaction_date.localeCompare(b.transaction_date));
 
   for (const t of sorted) {
@@ -77,17 +75,17 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
       <div className="lg:col-span-2 glass-card rounded-2xl p-6 relative overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-base font-semibold text-white">Evolução do Fluxo de Caixa</h3>
-            <p className="text-xs text-slate-400">Receitas vs Despesas ao longo do tempo</p>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Evolução do Fluxo de Caixa</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Receitas vs Despesas ao longo do tempo</p>
           </div>
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <span className="text-slate-300">Receitas</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="text-slate-600 dark:text-slate-300">Receitas</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-              <span className="text-slate-300">Despesas</span>
+              <span className="text-slate-600 dark:text-slate-300">Despesas</span>
             </div>
           </div>
         </div>
@@ -98,23 +96,24 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
               <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorReceitas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.35} />
                     <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
-                <XAxis dataKey="date" stroke="#64748B" fontSize={11} tickLine={false} />
-                <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => `R$${v}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(150, 150, 150, 0.15)" />
+                <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} tickFormatter={(v) => `R$${v}`} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F172A',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
                     borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    color: 'var(--text-primary)',
                   }}
                   itemStyle={{ fontSize: '12px' }}
                   formatter={(value: any) => [formatCurrency(Number(value)), '']}
@@ -124,7 +123,7 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
                   dataKey="receitas"
                   name="Receitas"
                   stroke="#10B981"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorReceitas)"
                 />
@@ -133,14 +132,14 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
                   dataKey="despesas"
                   name="Despesas"
                   stroke="#F43F5E"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorDespesas)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-500 text-sm">
+            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
               Nenhuma transação registrada no período
             </div>
           )}
@@ -150,8 +149,8 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
       {/* Gráfico 2: Despesas por Categoria */}
       <div className="glass-card rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
         <div>
-          <h3 className="text-base font-semibold text-white">Despesas por Categoria</h3>
-          <p className="text-xs text-slate-400">Distribuição percentual dos gastos</p>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Despesas por Categoria</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Distribuição dos seus gastos</p>
         </div>
 
         <div className="h-[220px] w-full my-auto flex items-center justify-center">
@@ -173,17 +172,18 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#0F172A',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-subtle)',
                     borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    color: 'var(--text-primary)',
                   }}
                   formatter={(val: any) => [formatCurrency(Number(val)), '']}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-slate-500 text-sm">Sem despesas no período</div>
+            <div className="text-slate-400 text-sm">Sem despesas no período</div>
           )}
         </div>
 
@@ -192,10 +192,10 @@ export const FinancialCharts: React.FC<FinancialChartsProps> = ({ transactions }
           {pieData.map((p) => (
             <div key={p.name} className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }}></span>
-                <span className="text-slate-300 truncate max-w-[120px]">{p.name}</span>
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: p.color }}></span>
+                <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[120px]">{p.name}</span>
               </div>
-              <span className="font-semibold text-white">{formatCurrency(p.value)}</span>
+              <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(p.value)}</span>
             </div>
           ))}
         </div>
