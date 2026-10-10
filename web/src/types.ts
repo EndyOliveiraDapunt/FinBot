@@ -43,5 +43,4 @@ export interface FinancialStats {
   totalBalance: number;
   totalIncome: number;
   totalExpenses: number;
-  savingsRate: number;
 }

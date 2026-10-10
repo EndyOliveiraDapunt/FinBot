@@ -124,13 +124,10 @@ export function App() {
       if (t.type === 'expense') totalExpenses += val;
     }
 
-    const savingsRate = totalIncome > 0 ? Math.max(0, ((totalIncome - totalExpenses) / totalIncome) * 100) : 0;
-
     return {
       totalBalance,
       totalIncome,
       totalExpenses,
-      savingsRate,
     };
   }, [accounts, transactions]);
 
