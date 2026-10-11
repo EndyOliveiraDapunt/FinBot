@@ -1,32 +1,45 @@
 #!/usr/bin/env python3
-import json
-import urllib.request
-import sys
+"""Aplica um arquivo SQL no projeto Supabase pela Management API.
 
-PROJECT_REF = "dqigaogendvfytahnpfj"
-TOKEN = "sbp_oauth_5b69519bc725ce9b9b9c961facfcde1b2272dbfd"
+Uso:
+    SUPABASE_ACCESS_TOKEN=sbp_... python3 scripts/apply_migration.py supabase/migrations/arquivo.sql
+
+O token nunca deve ficar no código. Gere um Personal Access Token em
+Supabase Dashboard > Account > Access Tokens e passe por variável de ambiente.
+"""
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+PROJECT_REF = os.environ.get("SUPABASE_PROJECT_REF", "dqigaogendvfytahnpfj")
+TOKEN = os.environ.get("SUPABASE_ACCESS_TOKEN")
+
 
 def run_sql(sql_query: str):
     url = f"https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query"
     headers = {
         "Authorization": f"Bearer {TOKEN}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     payload = json.dumps({"query": sql_query}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req) as resp:
-            data = resp.read().decode("utf-8")
-            return True, data
+            return True, resp.read().decode("utf-8")
     except urllib.error.HTTPError as e:
-        error_msg = e.read().decode("utf-8")
-        return False, f"HTTP {e.code}: {error_msg}"
-    except Exception as e:
+        return False, f"HTTP {e.code}: {e.read().decode('utf-8')}"
+    except Exception as e:  # noqa: BLE001
         return False, str(e)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso: python3 apply_migration.py <caminho_do_arquivo.sql>")
+        sys.exit(1)
+    if not TOKEN:
+        print("Defina SUPABASE_ACCESS_TOKEN no ambiente.")
         sys.exit(1)
 
     file_path = sys.argv[1]

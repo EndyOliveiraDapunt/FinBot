@@ -1,75 +1,136 @@
-/**
- * Definições das Ferramentas (Tool Calling) para a IA financeira
- */
+import OpenAI from 'openai';
 
-export const financialTools = [
+export const financialTools: OpenAI.Chat.ChatCompletionTool[] = [
   {
     type: 'function',
-    name: 'create_transaction',
-    description: 'Registra uma nova transação financeira (despesa ou receita) para o usuário no banco de dados.',
-    parameters: {
-      type: 'object',
-      properties: {
-        amount: {
-          type: 'number',
-          description: 'Valor monetário estritamente positivo da transação (ex: 42.50, 15, 200).',
+    function: {
+      name: 'add_transaction',
+      description: 'Registra uma nova transação financeira (despesa, receita ou transferência) na conta do usuário.',
+      parameters: {
+        type: 'object',
+        properties: {
+          amount: {
+            type: 'number',
+            description: 'Valor monetário da transação (ex: 45.90, 1500, 20.00). Deve ser um número positivo.',
+          },
+          type: {
+            type: 'string',
+            enum: ['expense', 'income', 'transfer'],
+            description: 'Tipo da transação: expense (despesa/gasto), income (receita/ganho/salário), ou transfer (transferência entre contas).',
+          },
+          description: {
+            type: 'string',
+            description: 'Descrição sucinta do gasto ou receita (ex: Almoço no quilo, Uber, Conta de Luz, Salário mensal).',
+          },
+          category_name: {
+            type: 'string',
+            description: 'Nome da categoria correspondente (ex: Alimentação, Transporte, Moradia, Lazer, Saúde, Educação, Salário, Outros).',
+          },
+          account_name: {
+            type: 'string',
+            description: 'Nome da conta utilizada (ex: Conta Principal, Nubank, Itaú). Se não informada, usa a conta padrão.',
+          },
+          transfer_account_name: {
+            type: 'string',
+            description: 'Nome da conta de destino no caso de transferências.',
+          },
+          date: {
+            type: 'string',
+            description: 'Data da transação no formato YYYY-MM-DD. Se ocorreu hoje, omita ou use a data atual.',
+          },
         },
-        type: {
-          type: 'string',
-          enum: ['expense', 'income'],
-          description: 'Tipo da transação: expense (despesa, gasto, saída, compra) ou income (receita, ganho, entrada, salário).',
-        },
-        description: {
-          type: 'string',
-          description: 'Breve descrição do que foi comprado ou recebido (ex: Almoço no quilo, Padaria, Uber, Conta de Luz, Salário).',
-        },
-        category_name: {
-          type: 'string',
-          description: 'Nome da categoria sugerida (ex: Alimentação, Transporte, Moradia, Lazer, Saúde, Salário, etc.).',
-        },
-        account_name: {
-          type: 'string',
-          description: 'Nome da conta ou método utilizado se citado (ex: Carteira, Dinheiro, Conta Principal, Nubank, Cartão).',
-        },
-        date: {
-          type: 'string',
-          description: 'Data no formato YYYY-MM-DD. Se o usuário falar "ontem", calcule a data correta baseada no dia de hoje.',
-        },
+        required: ['amount', 'type', 'description'],
       },
-      required: ['amount', 'type', 'description'],
     },
   },
   {
     type: 'function',
-    name: 'get_financial_summary',
-    description: 'Consulta o resumo de gastos, receitas ou saldo geral das contas do usuário.',
-    parameters: {
-      type: 'object',
-      properties: {
-        period: {
-          type: 'string',
-          enum: ['today', 'current_week', 'current_month'],
-          description: 'Período desejado da consulta: today (hoje), current_week (esta semana), current_month (este mês).',
-        },
-        category_name: {
-          type: 'string',
-          description: 'Opcional: nome da categoria específica que o usuário quer consultar gastos.',
+    function: {
+      name: 'get_summary',
+      description: 'Consulta o resumo financeiro (total gasto, total recebido, saldo geral e detalhamento por categoria) de um período.',
+      parameters: {
+        type: 'object',
+        properties: {
+          period: {
+            type: 'string',
+            enum: ['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month'],
+            description: 'Período desejado para a consulta. Padrão: this_month.',
+          },
+          category_name: {
+            type: 'string',
+            description: 'Filtrar gastos de uma categoria específica (ex: Alimentação, Transporte).',
+          },
         },
       },
-      required: ['period'],
     },
   },
   {
     type: 'function',
-    name: 'cancel_last_transaction',
-    description: 'Cancela ou apaga a última transação registrada quando o usuário pedir para desfazer ou avisar que errou o lançamento.',
-    parameters: {
-      type: 'object',
-      properties: {
-        reason: {
-          type: 'string',
-          description: 'Motivo informado pelo usuário para o cancelamento.',
+    function: {
+      name: 'list_transactions',
+      description: 'Lista as transações recentes registradas pelo usuário.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number',
+            description: 'Quantidade máxima de transações para listar (padrão: 5).',
+          },
+          period: {
+            type: 'string',
+            enum: ['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month'],
+            description: 'Período das transações.',
+          },
+          type: {
+            type: 'string',
+            enum: ['expense', 'income', 'all'],
+            description: 'Filtrar por tipo de transação.',
+          },
         },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_balance',
+      description: 'Consulta o saldo financeiro consolidado de todas as contas do usuário.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'cancel_last_transaction',
+      description: 'Desfaz ou cancela a última transação financeira registrada pelo usuário.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_categories',
+      description: 'Lista as categorias de despesas e receitas configuradas pelo usuário.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_accounts',
+      description: 'Lista as contas bancárias ou carteiras ativas do usuário e seus saldos.',
+      parameters: {
+        type: 'object',
+        properties: {},
       },
     },
   },

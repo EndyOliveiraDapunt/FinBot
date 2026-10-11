@@ -7,15 +7,18 @@ import { AccountsList } from './components/AccountsList';
 import { RecentTransactions } from './components/RecentTransactions';
 import { WhatsAppLiveModal } from './components/WhatsAppLiveModal';
 import { NewTransactionModal } from './components/NewTransactionModal';
-import { AuthModal } from './components/AuthModal';
+import { StatementUploadModal } from './components/StatementUploadModal';
 import { SettingsModal } from './components/SettingsModal';
+import { LoginPage } from './components/LoginPage';
+import { AdminPanel } from './components/AdminPanel';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Transaction, Account, Category, FinancialStats } from './types';
-import { MessageSquare, ShieldCheck, Sparkles } from 'lucide-react';
+import { MessageSquare, ShieldCheck, FileText } from 'lucide-react';
 
 function Dashboard() {
   const { user, profile } = useAuth();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'admin'>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -25,8 +28,8 @@ function Dashboard() {
   // Modais
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState<boolean>(false);
   const [isNewTxOpen, setIsNewTxOpen] = useState<boolean>(false);
+  const [isImportPdfOpen, setIsImportPdfOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
 
   const activeUserId = profile?.id || user?.id || '';
 
@@ -67,6 +70,10 @@ function Dashboard() {
   useEffect(() => {
     if (activeUserId) {
       fetchData();
+    } else {
+      setTransactions([]);
+      setAccounts([]);
+      setCategories([]);
     }
   }, [activeUserId, fetchData]);
 
@@ -125,7 +132,17 @@ function Dashboard() {
     }
   };
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'João Silva';
+  // Se deslogado, exibe exclusivamente a página de login limpa e focada
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Se estiver na visão administrativa
+  if (currentView === 'admin') {
+    return <AdminPanel onBackToDashboard={() => setCurrentView('dashboard')} />;
+  }
+
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'Usuário';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
@@ -133,21 +150,24 @@ function Dashboard() {
       <Header
         onOpenWhatsApp={() => setIsWhatsAppOpen(true)}
         onOpenNewTransaction={() => setIsNewTxOpen(true)}
+        onOpenImportPdf={() => setIsImportPdfOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => {}}
+        onOpenAdmin={() => setCurrentView('admin')}
         onRefresh={() => fetchData()}
         isRefreshing={isRefreshing}
       />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-        
         {/* Welcome SaaS Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-surface border border-border-subtle relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-80 h-full bg-brand-500/5 blur-3xl pointer-events-none"></div>
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Painel Financeiro SaaS</span>
+              <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">
+                Plano {(profile?.plan_tier || 'basic').toUpperCase()}
+              </span>
               <span className="text-slate-300 dark:text-slate-600">•</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
@@ -158,11 +178,19 @@ function Dashboard() {
               Olá, {displayName} 👋
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
-              Suas despesas e receitas sincronizadas em tempo real via WhatsApp e Web com o PostgreSQL do Supabase.
+              Suas despesas e receitas sincronizadas em tempo real via WhatsApp e Web.
             </p>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setIsImportPdfOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-bold transition-all shadow-sm group"
+            >
+              <FileText className="w-4 h-4 text-brand-500" />
+              <span>Importar PDF</span>
+            </button>
+
             <button
               onClick={() => setIsWhatsAppOpen(true)}
               className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 text-[#25D366] text-xs font-bold transition-all shadow-sm group"
@@ -191,7 +219,7 @@ function Dashboard() {
 
       {/* Footer */}
       <footer className="border-t border-border-subtle py-6 text-center text-xs text-slate-500">
-        <p>FinBot SaaS • Gestão Financeira Conversacional • Supabase PostgreSQL • Gemini 3.8 Flash</p>
+        <p>FinBot SaaS • Controle Financeiro Pessoal</p>
       </footer>
 
       {/* Modals */}
@@ -211,9 +239,12 @@ function Dashboard() {
         onSuccess={() => fetchData()}
       />
 
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
+      <StatementUploadModal
+        isOpen={isImportPdfOpen}
+        onClose={() => setIsImportPdfOpen(false)}
+        userId={activeUserId}
+        accounts={accounts}
+        onSuccess={() => fetchData()}
       />
 
       <SettingsModal

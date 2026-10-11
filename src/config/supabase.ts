@@ -1,19 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+import { env } from './env.js';
 
-dotenv.config();
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error('As variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias no .env');
-}
-
-// Cliente com privilégios administrativos (service_role) para uso no backend / webhook do WhatsApp
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+// Cliente administrativo (service_role) para uso exclusivo no backend
+export const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
   },
 });
+
+// Cria cliente com o JWT do usuário autenticado para operações no contexto do usuário
+export function createUserClient(accessToken: string) {
+  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}

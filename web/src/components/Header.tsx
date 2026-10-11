@@ -3,10 +3,11 @@ import {
   Wallet, 
   MessageSquare, 
   Plus, 
-  Sparkles,
   RefreshCw,
   Sun,
-  Moon
+  Moon,
+  FileText,
+  Shield
 } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { useTheme } from '../context/ThemeContext';
@@ -14,8 +15,10 @@ import { useTheme } from '../context/ThemeContext';
 interface HeaderProps {
   onOpenWhatsApp: () => void;
   onOpenNewTransaction: () => void;
+  onOpenImportPdf: () => void;
   onOpenSettings: () => void;
   onOpenAuth: () => void;
+  onOpenAdmin: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
 }
@@ -23,8 +26,10 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onOpenWhatsApp,
   onOpenNewTransaction,
+  onOpenImportPdf,
   onOpenSettings,
   onOpenAuth,
+  onOpenAdmin,
   onRefresh,
   isRefreshing,
 }) => {
@@ -44,25 +49,25 @@ export const Header: React.FC<HeaderProps> = ({
                 Fin<span className="text-brand-500">Bot</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-                SaaS Pro
+                SaaS
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Controle Financeiro Autônomo com IA</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Controle Financeiro Pessoal</p>
           </div>
-        </div>
-
-        {/* Center / Status Badge */}
-        <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-elevated border border-border-subtle text-xs text-slate-600 dark:text-slate-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>WhatsApp: <strong>Conectado</strong></span>
-          <span className="text-slate-300 dark:text-slate-600">|</span>
-          <span className="flex items-center gap-1 text-brand-600 dark:text-emerald-400 font-medium">
-            <Sparkles className="w-3.5 h-3.5" /> Gemini 3.8 Flash
-          </span>
         </div>
 
         {/* Action Controls & User Area */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Admin Panel Button */}
+          <button
+            onClick={onOpenAdmin}
+            title="Acessar Painel Administrativo"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all hover:scale-[1.02] shadow-sm"
+          >
+            <Shield className="w-4 h-4 text-emerald-500" />
+            <span className="hidden sm:inline">Administração</span>
+          </button>
+
           {/* Quick Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -84,6 +89,15 @@ export const Header: React.FC<HeaderProps> = ({
             className="p-2.5 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-50 shadow-sm"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-500' : ''}`} />
+          </button>
+
+          {/* Importar PDF */}
+          <button
+            onClick={onOpenImportPdf}
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all hover:scale-[1.02] shadow-sm"
+          >
+            <FileText className="w-4 h-4 text-brand-500" />
+            <span>Importar PDF</span>
           </button>
 
           {/* WhatsApp Simulator Live */}

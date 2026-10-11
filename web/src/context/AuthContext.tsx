@@ -62,8 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
-        // Se não houver sessão ativa, busca o perfil padrão de demonstração criado no banco
-        loadDemoProfile();
+        setProfile(null);
       }
       setIsLoading(false);
     });
@@ -75,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
-        loadDemoProfile();
+        setProfile(null);
       }
       setIsLoading(false);
     });
@@ -85,19 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Perfil de demonstração se deslogado
-  const loadDemoProfile = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (data) {
-      setProfile(data as UserProfile);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -141,8 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
     setSession(null);
-    loadDemoProfile();
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -167,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       await fetchProfile(user.id);
     } else {
-      await loadDemoProfile();
+      setProfile(null);
     }
   };
 

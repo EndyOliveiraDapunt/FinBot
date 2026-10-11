@@ -1,51 +1,111 @@
-# 💰 FinBot SaaS - Gestão Financeira Conversacional
+# 💰 FinBot SaaS - Controle Financeiro Pessoal Inteligente
 
-Sistema SaaS de controle financeiro pessoal com foco em **fricção zero**: os usuários registram suas receitas e despesas conversando diretamente pelo **WhatsApp** (texto ou áudio), onde uma **IA (Gemini Flash)** interpreta e categoriza os gastos em tempo real, alimentando um banco de dados **Supabase (PostgreSQL)** com precisão matemática e segurança multi-tenant (RLS).
+SaaS de gestão financeira pessoal onde os usuários controlam suas receitas, despesas e faturas conversando pelo **WhatsApp** ou pelo **Dashboard Web**, alimentado por inteligência artificial leve (**Google Gemini** como principal e **OpenRouter** como reserva) e banco de dados **Supabase (PostgreSQL)** com segurança multi-tenant (RLS) e precisão matemática.
 
 ---
 
-## 📁 Estrutura do Repositório
+## 🚀 Principais Funcionalidades
+
+1. **Gestão Conversacional no WhatsApp**:
+   - Registro instantâneo de gastos e ganhos ("gastei 45 no almoço", "recebi 1500 de freela").
+   - Consulta de saldo e extrato ("qual meu saldo?", "quanto gastei hoje?").
+   - Desfazer lançamentos rápidos ("cancela o último").
+   - Entendimento de gírias e expressões monetárias brasileiras (*cinquentão*, *cem conto*, *3 mil*, *um barão*).
+
+2. **Vínculo Seguro de WhatsApp (Zero-SMS)**:
+   - O usuário cria a conta no painel web.
+   - Gera um código efêmero de 6 dígitos em *Configurações > Vincular WhatsApp*.
+   - Envia `vincular 123456` para o número do bot. A posse do número é comprovada diretamente pela mensagem.
+
+3. **Importação de Extratos e Faturas em PDF**:
+   - Leitura de extratos bancários e faturas de cartão (Nubank, Inter, Itaú, Bradesco, etc.).
+   - Reconhecimento automático de data, descrição, valor e tipo (despesa vs receita).
+   - Confirmação em lote no dashboard.
+
+4. **Planos SaaS com Controle de Quotas**:
+   - **Básico**: 50 mensagens/mês (grátis).
+   - **Pro**: 500 mensagens/mês.
+   - **Plus**: 2.000 mensagens/mês.
+
+5. **Alta Resiliência da IA**:
+   - Tenta o **Gemini** primeiro.
+   - Em caso de indisponibilidade ou rate limit, faz fallback automático para o **OpenRouter** gratuito.
+   - Se ambos estiverem fora, utiliza parser heurístico local.
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```text
-├── docs/
-│   ├── SDR.md                 # System Design Review (Arquitetura, Fluxos e Diretrizes do Sênior)
-│   └── DATABASE_SCHEMA.md     # Documentação detalhada do modelo relacional e regras de negócio
+├── src/
+│   ├── ai/                      # Motor de IA (Gemini, OpenRouter, ferramentas e loop de agente)
+│   ├── config/                  # Validação de variáveis de ambiente com Zod e cliente Supabase
+│   ├── lib/                     # Utilitários de dinheiro BRL, fuso horário e leitor de PDF
+│   ├── routes/                  # Rotas Fastify (webhook Evolution, chat, pareamento e importação)
+│   ├── services/                # Serviços de transações, usuários e WhatsApp
+│   └── index.ts                 # Servidor Fastify principal
+├── web/                         # Dashboard Web em React + Vite + Tailwind CSS
 ├── supabase/
 │   └── migrations/
-│       └── 20261009_initial_schema.sql  # Schema inicial, índices, triggers e RLS
-├── scripts/                   # Utilitários e scripts de automação/testes
-├── .agents/                   # Supabase Agent Skills oficiais instaladas
-└── README.md                  # Este documento
+│       └── 20261011_reset_schema.sql  # Schema moderno, planos, RLS e triggers de saldo
+├── docker-compose.yml           # Orquestração completa: Evolution API v2, Postgres, Redis e FinBot
+└── README.md
 ```
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Como Executar
 
-| Camada | Tecnologia | Motivação |
-| :--- | :--- | :--- |
-| **Banco de Dados** | Supabase (PostgreSQL 15+) | Precisão com `numeric(15,2)`, Row Level Security (RLS) nativo e Webhooks. |
-| **Motor de IA** | Gemini Flash (Tool Calling) | Latência ultrabaixa, suporte nativo a áudio/voz e custo acessível. |
-| **Mensageria** | WhatsApp Gateway (Evolution / Meta API) | Canal sem fricção onde o usuário já passa o dia. |
-| **Frontend Web** | Next.js + Tailwind CSS + shadcn/ui | Dashboard visual para relatórios e extratos consolidados. |
+### 1. Pré-requisitos
+- Node.js 20+ instalado
+- Conta no [Supabase](https://supabase.com)
+- Chave de API do [Google AI Studio](https://aistudio.google.com/) ou [OpenRouter](https://openrouter.ai/)
+
+### 2. Configurar Variáveis de Ambiente
+Copie o arquivo `.env.example` para `.env` e preencha as chaves:
+```bash
+cp .env.example .env
+```
+
+### 3. Aplicar a Migração do Banco
+No painel do Supabase, acesse **SQL Editor** e execute o conteúdo de:
+`supabase/migrations/20261011_reset_schema.sql`
+
+### 4. Instalar Dependências e Executar
+
+**Backend (API & Webhook):**
+```bash
+npm install
+npm test          # Executa a suite de testes unitários
+npm run dev       # Inicia o servidor Fastify em http://localhost:3000
+```
+
+**Frontend (Dashboard Web):**
+```bash
+cd web
+npm install
+npm run dev       # Inicia a interface Vite em http://localhost:5173
+```
+
+**Com Docker Compose (inclui Evolution API):**
+```bash
+docker compose up -d
+```
+Abra a Evolution API em `http://localhost:8080`, crie a instância `finbot` e escaneie o QR Code com seu WhatsApp!
 
 ---
 
-## 🚦 Roadmap do Projeto
+## 🧪 Testes Automatizados
 
-- [x] **Fase 1: Fundação do Banco de Dados & RLS**
-  - [x] SDR e especificação arquitetural
-  - [x] Schema inicial com tipos monetários e RLS
-  - [x] Configuração da conexão com o projeto Supabase (`dqigaogendvfytahnpfj`)
-- [ ] **Fase 2: Execução das Migrations & Testes Automatizados**
-  - [ ] Aplicação da migração no Supabase remoto
-  - [ ] Teste de triggers de saldo e isolamento de tenants
-- [ ] **Fase 3: Motor de IA (Gemini Flash & Tool Calling)**
-  - [ ] Definição dos esquemas de ferramentas (`create_transaction`, `get_balance`)
-  - [ ] Prompt de sistema com suporte a linguagem natural brasileira
-- [ ] **Fase 4: Integração de Webhook do WhatsApp**
-  - [ ] Receptor de mensagens com verificação de idempotência
-  - [ ] Loop de confirmação de registro
-- [ ] **Fase 5: Dashboard Web & Monetização**
-  - [ ] Interface Next.js para gerenciamento e gráficos
-  - [ ] Planos Free vs Pro
+Para rodar os testes unitários do backend:
+```bash
+npm test
+```
+Para testar a conectividade com as tabelas do Supabase:
+```bash
+npm run test:db
+```
+Para simular conversas no terminal:
+```bash
+npm run test:ai
+```

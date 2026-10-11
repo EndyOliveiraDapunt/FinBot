@@ -6,12 +6,14 @@ import {
   Sun, 
   Moon, 
   Sparkles, 
-  ShieldCheck, 
   Check, 
   Save, 
   CreditCard,
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  Copy,
+  Clock,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -33,7 +35,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Vínculo via código de 6 dígitos
+  const [linkCode, setLinkCode] = useState<string | null>(null);
+  const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleGenerateLinkCode = async () => {
+    if (!profile?.id) return;
+    setIsGeneratingCode(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/link-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLinkCode(data.code);
+        setLinkExpiresAt(data.expiresAt);
+      }
+    } catch (err) {
+      console.error('Erro ao gerar código de vínculo:', err);
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (!linkCode) return;
+    navigator.clipboard.writeText(`vincular ${linkCode}`);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,13 +91,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   };
 
-  const displayName = fullName || profile?.full_name || 'João Silva';
+  const displayName = fullName || profile?.full_name || 'Usuário';
   const initials = displayName
     .split(' ')
     .slice(0, 2)
     .map((n: string) => n[0])
     .join('')
     .toUpperCase() || 'FB';
+
+  const planTiers = [
+    {
+      id: 'basic',
+      name: 'Básico',
+      queries: '50 mensagens/mês',
+      price: 'Grátis',
+      features: ['WhatsApp texto e áudio', 'Extratos e faturas em PDF', 'Dashboard completo'],
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      queries: '500 mensagens/mês',
+      price: 'R$ 19,90/mês',
+      popular: true,
+      features: ['Múltiplas contas e cartões', 'IA com alta velocidade', 'Exportação de relatórios'],
+    },
+    {
+      id: 'plus',
+      name: 'Plus',
+      queries: '2.000 mensagens/mês',
+      price: 'R$ 39,90/mês',
+      features: ['Suporte prioritário', 'Sem limite prático', 'Ideal para finanças familiares'],
+    },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -75,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Configurações da Conta</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Preferências pessoais, integração e tema</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Preferências pessoais, integração e planos</p>
             </div>
           </div>
           <button
@@ -105,11 +166,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             onClick={() => setActiveTab('whatsapp')}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
               activeTab === 'whatsapp'
-                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                ? 'border-[#25D366] text-[#25D366]'
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Phone className="w-4 h-4 text-[#25D366]" /> Conexão WhatsApp
+            <MessageSquare className="w-4 h-4" /> Vincular WhatsApp
           </button>
 
           <button
@@ -121,7 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />} Aparência
+            <Sun className="w-4 h-4" /> Aparência
           </button>
 
           <button
@@ -133,17 +194,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <CreditCard className="w-4 h-4" /> Assinatura
+            <CreditCard className="w-4 h-4" /> Planos & Quota
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+        <div className="p-6 overflow-y-auto flex-1">
           <form onSubmit={handleSave} className="space-y-6">
             
             {/* TAB 1: PERFIL */}
             {activeTab === 'profile' && (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                     Nome Completo
@@ -165,7 +226,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <input
                     type="email"
                     disabled
-                    value={user?.email || 'joao@finbot.local'}
+                    value={user?.email || 'usuario@finbot.local'}
                     className="w-full bg-slate-100 dark:bg-slate-800/50 border border-border-subtle rounded-xl px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">Gerenciado via Supabase Auth</p>
@@ -208,56 +269,77 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             {/* TAB 2: WHATSAPP */}
             {activeTab === 'whatsapp' && (
               <div className="space-y-5">
-                {/* Visual WhatsApp Card */}
                 <div className="p-5 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <MessageSquare className="w-6 h-6" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">Auto-Roteamento Inteligente</h4>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">Vínculo Seguro por Código</h4>
                       <span className="text-[10px] font-bold uppercase bg-[#25D366] text-slate-950 px-2 py-0.5 rounded-full">
-                        Ativo
+                        {profile?.phone_number ? 'Conectado' : 'Aguardando'}
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                      Ao cadastrar seu número abaixo, qualquer mensagem ou áudio que você enviar para o bot no WhatsApp será identificada e lançada automaticamente no seu painel.
+                      {profile?.phone_number
+                        ? `Seu WhatsApp (+${profile.phone_number}) está conectado. Cada gasto enviado por ele será lançado no seu painel.`
+                        : 'Para provar a posse do seu número sem gastar com SMS, gere um código temporário abaixo e mande para o bot.'}
                     </p>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                    Seu Número do WhatsApp (com DDI e DDD)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
-                      🇧🇷 +
-                    </span>
-                    <input
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="5511999999999"
-                      className="w-full bg-surface-elevated border border-border-subtle focus:border-[#25D366] focus:ring-2 focus:ring-[#25D366]/20 rounded-xl pl-16 pr-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none transition-all"
-                    />
+                {!linkCode ? (
+                  <div className="p-6 rounded-2xl bg-surface-elevated border border-border-subtle text-center space-y-3">
+                    <h5 className="text-sm font-bold text-slate-900 dark:text-white">Como conectar seu WhatsApp:</h5>
+                    <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 text-left max-w-md mx-auto list-decimal list-inside">
+                      <li>Clique em <strong>Gerar Código de Vínculo</strong> abaixo</li>
+                      <li>Abra a conversa com o número do bot no WhatsApp</li>
+                      <li>Envie a mensagem: <code className="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono">vincular CÓDIGO</code></li>
+                    </ol>
+                    <button
+                      type="button"
+                      onClick={handleGenerateLinkCode}
+                      disabled={isGeneratingCode}
+                      className="mt-3 px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-slate-950 font-bold text-xs shadow-md transition-all inline-flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>{isGeneratingCode ? 'Gerando...' : 'Gerar Código de Vínculo'}</span>
+                    </button>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1.5">
-                    Exemplo: <span className="font-mono font-medium">5511999999999</span> (apenas números, incluindo código 55 do Brasil).
-                  </p>
-                </div>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-emerald-500/10 border-2 border-dashed border-[#25D366] text-center space-y-4">
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                      Seu código de pareamento:
+                    </p>
+                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-[#25D366]/40 shadow-sm">
+                      <span className="font-mono text-2xl font-extrabold tracking-widest text-slate-900 dark:text-white">
+                        {linkCode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Copiar comando"
+                      >
+                        {copiedCode ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      Mande no WhatsApp do bot: <strong className="font-mono text-slate-900 dark:text-white">vincular {linkCode}</strong>
+                    </p>
+                    <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Válido por 10 minutos</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* TAB 3: APARÊNCIA */}
             {activeTab === 'appearance' && (
               <div className="space-y-4">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                  Selecione o esquema de cores para o painel de controle:
-                </p>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Card Modo Escuro */}
                   <div
                     onClick={() => setTheme('dark')}
                     className={`cursor-pointer p-5 rounded-2xl border transition-all relative ${
@@ -266,26 +348,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         : 'bg-slate-900/40 border-border-subtle hover:border-slate-500 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
                         <Moon className="w-5 h-5 text-indigo-400" />
                         <span className="font-bold text-sm text-white">Modo Escuro</span>
                       </div>
                       {theme === 'dark' && <CheckCircle2 className="w-5 h-5 text-brand-400" />}
                     </div>
-
-                    {/* Mini UI Preview */}
-                    <div className="p-3 rounded-xl bg-[#090D16] border border-white/10 space-y-2">
-                      <div className="h-2 w-16 bg-brand-500 rounded"></div>
-                      <div className="h-2 w-28 bg-white/20 rounded"></div>
-                      <div className="flex gap-1.5 pt-1">
-                        <div className="h-4 flex-1 bg-white/5 rounded"></div>
-                        <div className="h-4 flex-1 bg-white/5 rounded"></div>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Card Modo Claro */}
                   <div
                     onClick={() => setTheme('light')}
                     className={`cursor-pointer p-5 rounded-2xl border transition-all relative ${
@@ -294,62 +365,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         : 'bg-white/40 border-border-subtle hover:border-slate-400 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2.5">
                         <Sun className="w-5 h-5 text-amber-500" />
                         <span className="font-bold text-sm text-slate-900">Modo Claro</span>
                       </div>
                       {theme === 'light' && <CheckCircle2 className="w-5 h-5 text-brand-500" />}
                     </div>
-
-                    {/* Mini UI Preview */}
-                    <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 space-y-2">
-                      <div className="h-2 w-16 bg-brand-600 rounded"></div>
-                      <div className="h-2 w-28 bg-slate-400 rounded"></div>
-                      <div className="flex gap-1.5 pt-1">
-                        <div className="h-4 flex-1 bg-white rounded border border-slate-200"></div>
-                        <div className="h-4 flex-1 bg-white rounded border border-slate-200"></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 4: PLANO & ASSINATURA */}
+            {/* TAB 4: PLANOS & QUOTA */}
             {activeTab === 'plan' && (
               <div className="space-y-4">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-500/10 via-surface-elevated to-surface border border-brand-500/30">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs uppercase font-extrabold tracking-wider px-3 py-1 rounded-full bg-brand-500 text-white">
-                      Plano {profile?.plan_tier ? profile.plan_tier.toUpperCase() : 'PRO'}
-                    </span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <Sparkles className="w-4 h-4" /> Ilimitado
-                    </span>
-                  </div>
-
-                  <h4 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">
-                    FinBot SaaS Inteligente
-                  </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                    Assinatura com processamento ilimitado de áudios e textos no WhatsApp com Gemini 3.8 Flash e backup no PostgreSQL Supabase.
-                  </p>
-
-                  <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
-                    <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-brand-500" />
-                      <span>Lançamentos automáticos via áudio do WhatsApp</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-brand-500" />
-                      <span>Classificação inteligente de despesas com IA</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-brand-500" />
-                      <span>Sincronização em tempo real multi-dispositivo</span>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {planTiers.map((tier) => {
+                    const isCurrent = (profile?.plan_tier || 'basic') === tier.id;
+                    return (
+                      <div
+                        key={tier.id}
+                        className={`p-4 rounded-2xl border flex flex-col justify-between transition-all ${
+                          isCurrent
+                            ? 'bg-brand-500/10 border-brand-500 ring-2 ring-brand-500/20'
+                            : 'bg-surface-elevated border-border-subtle'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-extrabold text-sm text-slate-900 dark:text-white">{tier.name}</span>
+                            {isCurrent && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-500 text-white uppercase">
+                                Atual
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-base font-extrabold text-brand-600 dark:text-brand-400 mb-1">
+                            {tier.price}
+                          </div>
+                          <p className="text-[11px] font-medium text-slate-500 mb-3">{tier.queries}</p>
+                          <ul className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
+                            {tier.features.map((f, i) => (
+                              <li key={i} className="flex items-center gap-1.5">
+                                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                <span>{f}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
