@@ -20,7 +20,7 @@ interface UserMenuProps {
 }
 
 export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, onOpenAdmin }) => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'João Silva';
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'Usuário';
   const displayPhone = profile?.phone_number ? `+${profile.phone_number}` : 'WhatsApp não vinculado';
   
   // Iniciais para o avatar
@@ -61,9 +61,15 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, 
             <span className="text-xs font-bold text-slate-800 dark:text-white group-hover:text-brand-500 transition-colors">
               {displayName}
             </span>
-            <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-              {profile?.plan_tier ? profile.plan_tier.toUpperCase() : 'PRO'}
-            </span>
+            {isAdmin ? (
+              <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                ADMIN
+              </span>
+            ) : (
+              <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                {profile?.plan_tier ? profile.plan_tier.toUpperCase() : 'CONTA'}
+              </span>
+            )}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{displayPhone}</p>
         </div>
@@ -77,9 +83,15 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, 
           <div className="p-3.5 rounded-xl bg-surface-elevated border border-border-subtle mb-1.5">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{displayName}</span>
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> {profile?.plan_tier ? profile.plan_tier.toUpperCase() : 'PRO'}
-              </span>
+              {isAdmin ? (
+                <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Shield className="w-2.5 h-2.5" /> Administrador
+                </span>
+              ) : (
+                <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5" /> {profile?.plan_tier ? profile.plan_tier.toUpperCase() : 'CONTA'}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
               <Phone className="w-3 h-3 text-[#25D366]" />
@@ -118,7 +130,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, 
               <span>Configurações & Perfil</span>
             </button>
 
-            {onOpenAdmin && (
+            {isAdmin && onOpenAdmin && (
               <button
                 onClick={() => {
                   onOpenAdmin();

@@ -17,6 +17,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   session: Session | null;
   isLoading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string, phoneNumber?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -196,6 +197,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const isAdmin = Boolean(
+    user?.app_metadata?.role === 'admin' ||
+    user?.user_metadata?.role === 'admin' ||
+    user?.email?.toLowerCase() === 'admin@finbot.com'
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -203,6 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         session,
         isLoading,
+        isAdmin,
         signIn,
         signUp,
         signOut,

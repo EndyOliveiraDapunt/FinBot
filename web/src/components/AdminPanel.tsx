@@ -11,8 +11,10 @@ import {
   RefreshCw,
   ArrowLeft,
   ChevronDown,
-  Cpu
+  Cpu,
+  ShieldAlert
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface AdminUser {
   id: string;
@@ -60,18 +62,25 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => {
+  const { session, isAdmin } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'users' | 'telemetry'>('users');
 
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+  };
+
   const fetchData = async () => {
+    if (!isAdmin) return;
     setIsLoading(true);
     try {
       const [usersRes, telemRes] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/users'),
-        fetch('http://localhost:3000/api/admin/telemetry'),
+        fetch('http://localhost:3000/api/admin/users', { headers: authHeaders }),
+        fetch('http://localhost:3000/api/admin/telemetry', { headers: authHeaders }),
       ]);
 
       if (usersRes.ok) {
@@ -91,15 +100,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAdmin) {
+      fetchData();
+    }
+  }, [isAdmin]);
 
   const handleUpdatePlan = async (userId: string, newPlan: 'basic' | 'pro' | 'plus') => {
     setUpdatingUserId(userId);
     try {
       const res = await fetch('http://localhost:3000/api/admin/update-plan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({ userId, planTier: newPlan }),
       });
 
@@ -119,7 +130,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
     try {
       const res = await fetch('http://localhost:3000/api/admin/confirm-user-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({ userId }),
       });
       if (res.ok) {
@@ -129,6 +140,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
       console.error('Erro ao confirmar e-mail:', err);
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-xl">
+          <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Acesso Exclusivo para Administrador</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Você não possui permissão para acessar esta área restrita da plataforma.
+          </p>
+          <button
+            onClick={onBackToDashboard}
+            className="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            Voltar ao Painel Principal
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const payingCount = users.filter((u) => u.isPaying).length;
   const freeCount = users.length - payingCount;

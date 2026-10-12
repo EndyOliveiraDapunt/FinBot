@@ -8,9 +8,34 @@ const updatePlanSchema = z.object({
   planTier: z.enum(['basic', 'pro', 'plus']),
 });
 
+async function verifyAdminAuth(request: any, reply: any) {
+  const authHeader = request.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return reply.status(401).send({ error: 'Acesso restrito. Faça login como administrador.' });
+  }
+
+  const token = authHeader.replace('Bearer ', '').trim();
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+
+  if (error || !data?.user) {
+    return reply.status(401).send({ error: 'Sessão inválida ou expirada.' });
+  }
+
+  const user = data.user;
+  const isAdmin = Boolean(
+    user.app_metadata?.role === 'admin' ||
+    user.user_metadata?.role === 'admin' ||
+    user.email?.toLowerCase() === 'admin@finbot.com'
+  );
+
+  if (!isAdmin) {
+    return reply.status(403).send({ error: 'Acesso negado. Esta rota é restrita a administradores.' });
+  }
+}
+
 export async function adminRoutes(fastify: FastifyInstance) {
-  // Lista todos os usuários cadastrados no SaaS com detalhes de plano e uso
-  fastify.get('/api/admin/users', async (request, reply) => {
+  // Lista todos os usuários cadastrados com detalhes de plano e uso
+  fastify.get('/api/admin/users', { preHandler: verifyAdminAuth }, async (request, reply) => {
     try {
       // 1. Busca todos os perfis
       const { data: profiles, error: profError } = await supabaseAdmin
@@ -74,7 +99,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
   });
 
   // Atualiza o plano de um usuário diretamente
-  fastify.post('/api/admin/update-plan', async (request, reply) => {
+  fastify.post('/api/admin/update-plan', { preHandler: verifyAdminAuth }, async (request, reply) => {
     const parse = updatePlanSchema.safeParse(request.body);
     if (!parse.success) {
       return reply.status(400).send({ error: 'Dados inválidos' });
@@ -100,7 +125,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
   });
 
   // Confirma e-mail de um usuário pelo painel administrativo
-  fastify.post('/api/admin/confirm-user-email', async (request, reply) => {
+  fastify.post('/api/admin/confirm-user-email', { preHandler: verifyAdminAuth }, async (request, reply) => {
     const { userId } = (request.body || {}) as { userId?: string };
     if (!userId) {
       return reply.status(400).send({ error: 'userId é obrigatório' });
@@ -122,7 +147,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
   });
 
   // Retorna telemetria do sistema e modelos de IA (exclusivo para administração)
-  fastify.get('/api/admin/telemetry', async (request, reply) => {
+  fastify.get('/api/admin/telemetry', { preHandler: verifyAdminAuth }, async (request, reply) => {
     return reply.send({
       server: {
         status: 'online',

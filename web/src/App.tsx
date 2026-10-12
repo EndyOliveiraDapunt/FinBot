@@ -17,7 +17,7 @@ import { Transaction, Account, Category, FinancialStats } from './types';
 import { MessageSquare, ShieldCheck, FileText } from 'lucide-react';
 
 function Dashboard() {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [currentView, setCurrentView] = useState<'dashboard' | 'admin'>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -137,8 +137,8 @@ function Dashboard() {
     return <LoginPage />;
   }
 
-  // Se estiver na visão administrativa
-  if (currentView === 'admin') {
+  // Apenas o usuário administrador pode visualizar o painel de administração
+  if (currentView === 'admin' && isAdmin) {
     return <AdminPanel onBackToDashboard={() => setCurrentView('dashboard')} />;
   }
 
@@ -153,7 +153,9 @@ function Dashboard() {
         onOpenImportPdf={() => setIsImportPdfOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenAuth={() => {}}
-        onOpenAdmin={() => setCurrentView('admin')}
+        onOpenAdmin={() => {
+          if (isAdmin) setCurrentView('admin');
+        }}
         onRefresh={() => fetchData()}
         isRefreshing={isRefreshing}
       />
