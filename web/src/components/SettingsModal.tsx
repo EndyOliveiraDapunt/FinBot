@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { API_URL } from '../services/api';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     if (!profile?.id) return;
     setIsGeneratingCode(true);
     try {
-      const res = await fetch('http://localhost:3000/api/link-code', {
+      const res = await fetch(`${API_URL}/api/link-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: profile.id }),

@@ -15,6 +15,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../services/api';
 
 interface AdminUser {
   id: string;
@@ -79,8 +80,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
     setIsLoading(true);
     try {
       const [usersRes, telemRes] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/users', { headers: authHeaders }),
-        fetch('http://localhost:3000/api/admin/telemetry', { headers: authHeaders }),
+        fetch(`${API_URL}/api/admin/users`, { headers: authHeaders }),
+        fetch(`${API_URL}/api/admin/telemetry`, { headers: authHeaders }),
       ]);
 
       if (usersRes.ok) {
@@ -108,7 +109,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
   const handleUpdatePlan = async (userId: string, newPlan: 'basic' | 'pro' | 'plus') => {
     setUpdatingUserId(userId);
     try {
-      const res = await fetch('http://localhost:3000/api/admin/update-plan', {
+      const res = await fetch(`${API_URL}/api/admin/update-plan`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({ userId, planTier: newPlan }),
@@ -128,7 +129,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
 
   const handleConfirmEmail = async (userId: string) => {
     try {
-      const res = await fetch('http://localhost:3000/api/admin/confirm-user-email', {
+      const res = await fetch(`${API_URL}/api/admin/confirm-user-email`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({ userId }),

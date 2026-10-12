@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, FileText, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Account } from '../types';
+import { API_URL } from '../services/api';
 
 interface StatementUploadModalProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export const StatementUploadModal: React.FC<StatementUploadModalProps> = ({
     formData.append('confirm', 'false');
 
     try {
-      const res = await fetch('http://localhost:3000/api/imports/pdf', {
+      const res = await fetch(`${API_URL}/api/imports/pdf`, {
         method: 'POST',
         body: formData,
       });
@@ -91,7 +92,7 @@ export const StatementUploadModal: React.FC<StatementUploadModalProps> = ({
     formData.append('confirm', 'true');
 
     try {
-      const res = await fetch('http://localhost:3000/api/imports/pdf', {
+      const res = await fetch(`${API_URL}/api/imports/pdf`, {
         method: 'POST',
         body: formData,
       });

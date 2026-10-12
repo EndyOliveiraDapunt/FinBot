@@ -7,6 +7,7 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { API_URL } from '../services/api';
 
 interface WhatsAppLiveModalProps {
   isOpen: boolean;
@@ -88,7 +89,7 @@ export const WhatsAppLiveModal: React.FC<WhatsAppLiveModalProps> = ({
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3000/api/chat', {
+      const res = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, message: msg }),
