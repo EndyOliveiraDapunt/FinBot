@@ -18,6 +18,7 @@ interface AdminUser {
   id: string;
   fullName: string;
   email: string;
+  emailConfirmed: boolean;
   phoneNumber: string | null;
   planTier: 'basic' | 'pro' | 'plus';
   isPaying: boolean;
@@ -111,6 +112,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
       console.error('Erro ao alterar plano:', err);
     } finally {
       setUpdatingUserId(null);
+    }
+  };
+
+  const handleConfirmEmail = async (userId: string) => {
+    try {
+      const res = await fetch('http://localhost:3000/api/admin/confirm-user-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (res.ok) {
+        await fetchData();
+      }
+    } catch (err) {
+      console.error('Erro ao confirmar e-mail:', err);
     }
   };
 
@@ -251,7 +267,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToDashboard }) => 
                         <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="py-3.5 px-4">
                             <div className="font-bold text-slate-900 dark:text-white">{u.fullName}</div>
-                            <div className="text-[11px] text-slate-400">{u.email}</div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] text-slate-400">{u.email}</span>
+                              {u.emailConfirmed ? (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                  <CheckCircle2 className="w-2.5 h-2.5" /> Confirmado
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmEmail(u.id)}
+                                  className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                                  title="Confirmar e-mail deste usuário agora"
+                                >
+                                  <AlertCircle className="w-2.5 h-2.5" /> Confirmar Agora
+                                </button>
+                              )}
+                            </div>
                           </td>
 
                           <td className="py-3.5 px-4 font-mono text-[11px]">

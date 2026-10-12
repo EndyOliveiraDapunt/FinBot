@@ -87,7 +87,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      let { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      // Em ambiente de teste, se o email não estiver confirmado, auto-confirma no backend e tenta novamente
+      if (error && error.message.toLowerCase().includes('email not confirmed')) {
+        try {
+          const confirmRes = await fetch('http://localhost:3000/api/auth/auto-confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+
+          if (confirmRes.ok) {
+            const retry = await supabase.auth.signInWithPassword({ email, password });
+            if (!retry.error) {
+              return { error: null };
+            }
+            error = retry.error;
+          }
+        } catch {
+          // Prossegue com erro original se falhar conexão
+        }
+      }
+
       if (error) return { error: error.message };
       return { error: null };
     } catch (err: any) {
@@ -97,6 +119,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, phoneNumber?: string) => {
     try {
+      // Cria o usuário com e-mail já confirmado pelo backend administrativo
+      const res = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, fullName, phoneNumber }),
+      });
+
+      if (res.ok) {
+        // Usuário criado com sucesso e e-mail já confirmado; autentica imediatamente
+        return await signIn(email, password);
+      }
+
+      const resData = await res.json().catch(() => null);
+      if (resData?.error) {
+        return { error: resData.error };
+      }
+
+      // Fallback para caso o backend esteja indisponível
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -109,7 +149,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) return { error: error.message };
 
-      // Se passou telefone, atualiza no perfil
       if (data.user && phoneNumber) {
         const cleanPhone = phoneNumber.replace(/\D/g, '');
         await supabase
@@ -118,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', data.user.id);
       }
 
-      return { error: null };
+      return await signIn(email, password);
     } catch (err: any) {
       return { error: err.message || 'Erro inesperado ao registrar' };
     }

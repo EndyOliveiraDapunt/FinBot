@@ -7,6 +7,7 @@ import { chatRoutes } from './routes/chat.js';
 import { linkRoutes } from './routes/link.js';
 import { importRoutes } from './routes/import.js';
 import { adminRoutes } from './routes/admin.js';
+import { authRoutes } from './routes/auth.js';
 
 const fastify = Fastify({
   logger: {
@@ -43,6 +44,7 @@ async function main() {
   await fastify.register(linkRoutes);
   await fastify.register(importRoutes);
   await fastify.register(adminRoutes);
+  await fastify.register(authRoutes);
 
   try {
     await fastify.listen({ port: env.PORT, host: '0.0.0.0' });

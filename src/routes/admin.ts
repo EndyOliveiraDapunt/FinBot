@@ -22,11 +22,14 @@ export async function adminRoutes(fastify: FastifyInstance) {
         throw new Error(profError.message);
       }
 
-      // 2. Busca lista de usuários do auth para obter e-mails
+      // 2. Busca lista de usuários do auth para obter e-mails e status de confirmação
       const { data: authData } = await supabaseAdmin.auth.admin.listUsers();
-      const authMap = new Map<string, string>();
+      const authMap = new Map<string, { email: string; emailConfirmed: boolean }>();
       for (const u of authData?.users || []) {
-        authMap.set(u.id, u.email || 'sem email');
+        authMap.set(u.id, {
+          email: u.email || 'sem email',
+          emailConfirmed: Boolean(u.email_confirmed_at),
+        });
       }
 
       // 3. Busca resumo de transações por usuário
@@ -42,11 +45,13 @@ export async function adminRoutes(fastify: FastifyInstance) {
       const usersWithDetails = (profiles || []).map((p) => {
         const limits: Record<string, number> = { basic: 50, pro: 500, plus: 2000 };
         const maxQuota = limits[p.plan_tier] || 50;
+        const authInfo = authMap.get(p.id) || { email: 'Não disponível', emailConfirmed: true };
 
         return {
           id: p.id,
           fullName: p.full_name || 'Sem Nome',
-          email: authMap.get(p.id) || 'Não disponível',
+          email: authInfo.email,
+          emailConfirmed: authInfo.emailConfirmed,
           phoneNumber: p.phone_number || null,
           planTier: p.plan_tier,
           isPaying: p.plan_tier !== 'basic',
@@ -89,6 +94,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
       if (error) throw new Error(error.message);
 
       return reply.send({ success: true, userId, planTier });
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  // Confirma e-mail de um usuário pelo painel administrativo
+  fastify.post('/api/admin/confirm-user-email', async (request, reply) => {
+    const { userId } = (request.body || {}) as { userId?: string };
+    if (!userId) {
+      return reply.status(400).send({ error: 'userId é obrigatório' });
+    }
+
+    try {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email_confirm: true,
+      });
+
+      if (error) {
+        return reply.status(500).send({ error: error.message });
+      }
+
+      return reply.send({ success: true, userId });
     } catch (err: any) {
       return reply.status(500).send({ error: err.message });
     }
