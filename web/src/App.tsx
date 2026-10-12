@@ -160,7 +160,7 @@ function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* Welcome SaaS Banner */}
+        {/* Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-surface border border-border-subtle relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-80 h-full bg-brand-500/5 blur-3xl pointer-events-none"></div>
           <div>
@@ -171,7 +171,7 @@ function Dashboard() {
               <span className="text-slate-300 dark:text-slate-600">•</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                WhatsApp: {profile?.phone_number ? `+${profile.phone_number}` : 'Aguardando vínculo'}
+                WhatsApp: {profile?.phone_number ? `+${profile.phone_number}` : 'Pronto para vincular'}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -188,7 +188,7 @@ function Dashboard() {
               className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-bold transition-all shadow-sm group"
             >
               <FileText className="w-4 h-4 text-brand-500" />
-              <span>Importar PDF</span>
+              <span>Importar Extrato PDF</span>
             </button>
 
             <button
@@ -196,7 +196,7 @@ function Dashboard() {
               className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 text-[#25D366] text-xs font-bold transition-all shadow-sm group"
             >
               <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span>Simular no WhatsApp</span>
+              <span>Conversar no WhatsApp</span>
             </button>
           </div>
         </div>
@@ -219,7 +219,7 @@ function Dashboard() {
 
       {/* Footer */}
       <footer className="border-t border-border-subtle py-6 text-center text-xs text-slate-500">
-        <p>FinBot SaaS • Controle Financeiro Pessoal</p>
+        <p>FinBot • Controle Financeiro Pessoal</p>
       </footer>
 
       {/* Modals */}

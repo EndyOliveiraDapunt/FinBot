@@ -7,7 +7,8 @@ import {
   LogIn, 
   ChevronDown, 
   Sparkles,
-  Phone
+  Phone,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -15,9 +16,10 @@ import { useTheme } from '../context/ThemeContext';
 interface UserMenuProps {
   onOpenSettings: () => void;
   onOpenAuth: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth, onOpenAdmin }) => {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
@@ -115,6 +117,19 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings, onOpenAuth }
               <Settings className="w-4 h-4 text-slate-500" />
               <span>Configurações & Perfil</span>
             </button>
+
+            {onOpenAdmin && (
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span>Painel de Gestão</span>
+              </button>
+            )}
           </div>
 
           <div className="h-px bg-border-subtle my-1.5"></div>

@@ -44,30 +44,15 @@ export const Header: React.FC<HeaderProps> = ({
             <Wallet className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white font-sans">
-                Fin<span className="text-brand-500">Bot</span>
-              </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-                SaaS
-              </span>
-            </div>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white font-sans">
+              Fin<span className="text-brand-500">Bot</span>
+            </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Controle Financeiro Pessoal</p>
           </div>
         </div>
 
         {/* Action Controls & User Area */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Admin Panel Button */}
-          <button
-            onClick={onOpenAdmin}
-            title="Acessar Painel Administrativo"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all hover:scale-[1.02] shadow-sm"
-          >
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span className="hidden sm:inline">Administração</span>
-          </button>
-
           {/* Quick Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -85,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            title="Atualizar dados do Supabase"
+            title="Atualizar dados"
             className="p-2.5 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-50 shadow-sm"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-brand-500' : ''}`} />
@@ -97,16 +82,16 @@ export const Header: React.FC<HeaderProps> = ({
             className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-elevated hover:bg-slate-200 dark:hover:bg-slate-800 border border-border-subtle text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all hover:scale-[1.02] shadow-sm"
           >
             <FileText className="w-4 h-4 text-brand-500" />
-            <span>Importar PDF</span>
+            <span>Importar Extrato PDF</span>
           </button>
 
-          {/* WhatsApp Simulator Live */}
+          {/* Assistente WhatsApp */}
           <button
             onClick={onOpenWhatsApp}
             className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#128C7E] dark:text-[#25D366] text-xs font-semibold transition-all hover:scale-[1.02] shadow-sm"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>WhatsApp Live</span>
+            <span>Assistente WhatsApp</span>
           </button>
 
           {/* New Transaction Button */}
@@ -115,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 hover:from-brand-600 hover:to-emerald-700 text-white text-xs font-semibold shadow-glow-brand transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Lançamento</span>
+            <span className="hidden sm:inline">Novo Lançamento</span>
           </button>
 
           <div className="h-6 w-px bg-border-subtle mx-1"></div>
@@ -124,6 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
           <UserMenu
             onOpenSettings={onOpenSettings}
             onOpenAuth={onOpenAuth}
+            onOpenAdmin={onOpenAdmin}
           />
         </div>
       </div>

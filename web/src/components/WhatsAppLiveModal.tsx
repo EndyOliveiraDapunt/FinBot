@@ -151,10 +151,10 @@ export const WhatsAppLiveModal: React.FC<WhatsAppLiveModalProps> = ({
               <div className="flex items-center gap-1.5">
                 <h3 className="font-semibold text-sm leading-tight">FinBot WhatsApp</h3>
                 <span className="bg-emerald-500/20 text-emerald-300 text-[10px] px-1.5 py-0.5 rounded-full font-medium flex items-center gap-0.5">
-                  <Sparkles className="w-2.5 h-2.5" /> IA
+                  <Sparkles className="w-2.5 h-2.5" /> Assistente
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-100/70">Online • Simulação em Tempo Real</p>
+              <p className="text-[11px] text-emerald-100/70">Online • Pronto para conversar</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ export const WhatsAppLiveModal: React.FC<WhatsAppLiveModalProps> = ({
           {/* Alerta de privacidade */}
           <div className="text-center my-2">
             <span className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-slate-600 dark:text-slate-400 text-[10px] px-3 py-1 rounded-full shadow-sm">
-              🔒 As mensagens são sincronizadas com seu banco Supabase.
+              🔒 Suas mensagens e lançamentos são sincronizados com seu controle em tempo real.
             </span>
           </div>
 

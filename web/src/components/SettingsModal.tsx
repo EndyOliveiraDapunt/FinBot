@@ -229,7 +229,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     value={user?.email || 'usuario@finbot.local'}
                     className="w-full bg-slate-100 dark:bg-slate-800/50 border border-border-subtle rounded-xl px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">Gerenciado via Supabase Auth</p>
+                  <p className="text-[11px] text-slate-400 mt-1">E-mail principal vinculado ao seu acesso</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
